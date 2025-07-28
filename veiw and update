@@ -1,0 +1,50 @@
+🔹 a) Load Table Data
+private void loadLostItems() {
+    DefaultTableModel model = (DefaultTableModel) tblLostItems.getModel();
+    model.setRowCount(0); // Clear previous rows
+
+    try {
+        Statement stmt = con.createStatement();
+        ResultSet rs = stmt.executeQuery("SELECT item_id, item_name, description, location_lost, date_lost, status FROM lost_items");
+
+        while (rs.next()) {
+            model.addRow(new Object[]{
+                rs.getInt("item_id"),
+                rs.getString("item_name"),
+                rs.getString("description"),
+                rs.getString("location_lost"),
+                rs.getDate("date_lost"),
+                rs.getString("status")
+            });
+        }
+    } catch (SQLException e) {
+        lblStatus.setText("Load error: " + e.getMessage());
+    }
+}
+🔹 b) Mark Item as Found
+private void btnMarkFoundActionPerformed(java.awt.event.ActionEvent evt) {
+    int selectedRow = tblLostItems.getSelectedRow();
+    if (selectedRow == -1) {
+        lblStatus.setText("Select an item to mark as found.");
+        return;
+    }
+
+    int itemId = (int) tblLostItems.getValueAt(selectedRow, 0);
+
+    try {
+        PreparedStatement pst = con.prepareStatement("UPDATE lost_items SET status = 'found' WHERE item_id = ?");
+        pst.setInt(1, itemId);
+        pst.executeUpdate();
+        lblStatus.setText("Item marked as found.");
+        loadLostItems(); // Refresh table
+    } catch (SQLException e) {
+        lblStatus.setText("Update error: " + e.getMessage());
+    }
+}
+🔹 c) Table Model Setup (inside initComponents() or after GUI designer):
+tblLostItems.setModel(new javax.swing.table.DefaultTableModel(
+    new Object[][] {},
+    new String[] {
+        "Item ID", "Name", "Description", "Location", "Date Lost", "Status"
+    }
+));
